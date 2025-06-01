@@ -57,24 +57,24 @@ Load the `pixar_films` dataset into R. Clean the dataset by removing films witho
 #load packages
 library(tidyverse)
 
-#load datasets
+#load dataset
 pixar_films = read_csv("data/pixar_films.csv")
-public_response = read_csv("data/public_response.csv")
-
-View(pixar_films)
+#View(pixar_films)
 ```
 
 Values for the variable "film_rating" are "G", "PG", "N/A" and "Not Rated". "N/A" and "Not Rated" referring to not (yet) existing ratings. "G" is short for "General Audiences" meaning the movie is suitable for all ages. "PG" is short for "Parental Guidance suggested" meaning the movie contains content that might not be suitable for young children. For example a PG-13 rated movie contains content inappropiate for pre teenage children. Parents are advised to accompany or guide children throughout the movie.
 
 ```{r}
-#remove all movies with all titles, change film_rating to be a factor variable instead of a character variable
+#remove all movies with no titles, change film_rating to be a factor variable instead of a character variable, remove useless number column
 pixar_films_ratingfactor = pixar_films %>%
   filter(!(is.na(film))) %>% 
   mutate(film_rating = factor(
     film_rating,
     levels = c("G", "PG", "N/A"),
     ordered = TRUE)
-    )
+    ) %>%
+  select(-number)
+
 
 #View(pixar_films_ratingfactor)
 #typeof(pixar_films_ratingfactor$film_rating)
@@ -86,7 +86,7 @@ pixar_films_ratingfactor = pixar_films %>%
 Inspect the film titles manually. Which films form a film series? A film series can be identified by a common word in the titles of the films, often in conjunction with a number in the title, e.g. "Despicable Me" and "Despicable Me 2". Create a dataframe which displays a list of the different series with the titles of the films and how many films belong to the series. Output the dataframe.
 
 ```{r}
-
+#create "series" column giving all movies a series variable depending on specific strings in their title - "Standalone" for no match
 pixar_films_series = pixar_films_ratingfactor %>%
   mutate(series = case_when(
     str_detect(film, regex("Toy Story", ignore_case = TRUE)) ~ "Toy Story",
@@ -97,7 +97,10 @@ pixar_films_series = pixar_films_ratingfactor %>%
     TRUE ~ "Standalone")
     )
 
-series_summary <- pixar_films_series %>%
+#create a new dataframe consisting of the series, their movies and the amount of movies within each series
+#sort by amount of movies per series
+#remove all standalone movies
+series_summary = pixar_films_series %>%
   group_by(series) %>%
   summarise(
     films = paste(film, collapse = ", "),
@@ -107,17 +110,34 @@ series_summary <- pixar_films_series %>%
   arrange(desc(count)) %>% 
   filter(!(series=="Standalone"))
 
-
+#show new dataframe
 series_summary
 
 ```
 
 
-c)  Load the `public_response` dataframe into R. Convert the
-    `cinema_score` variable into a factor while ensuring the factor
-    levels are defined in ascending order, from the lowest to the
-    highest score. Combine `public_response` with the `pixar_films`
-    dataset using an appropriate merge variable.
+### c)
+Load the `public_response` dataframe into R. Convert the `cinema_score` variable into a factor while ensuring the factor levels are defined in ascending order, from the lowest to the highest score. Combine `public_response` with the `pixar_films` dataset using an appropriate merge variable.
+
+```{r}
+#load dataframe
+public_response = read_csv("data/public_response.csv")
+#View(public_response)
+public_response_asfactor = public_response %>% 
+  mutate(cinema_score = factor(
+    cinema_score,
+    levels = c("A-", "A", "A+", "NA"),
+    ordered = TRUE
+    )
+  )
+
+#View(public_response_asfactor)
+
+pixar_films_public_response = left_join(x = pixar_films_ratingfactor, y = public_response_asfactor, by = "film")
+
+#View(pixar_films_public_response)
+```
+
 
 d)  Choose one of the variables representing the public response and
     create a bar plot for the films belonging to a series. Here are the
