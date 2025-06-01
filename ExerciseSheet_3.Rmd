@@ -34,11 +34,14 @@ Create a new repository on GitHub in your account named `exeRcise-sheet-3`. Make
 https://github.com/ANiedenzu/exeRcise-sheet-3.git
 
 
-b)  Push your code to this new repository by copying and executing the
-    snippet on github listed under
-    `…or push an existing repository from the command line`.
-c)  Regularly push your latest changes to GitHub again and especially do
-    so when you are finished with this sheet.
+### b)
+Push your code to this new repository by copying and executing the snippet on github listed under `…or push an existing repository from the command line`.
+
+
+### c)
+Regularly push your latest changes to GitHub again and especially do so when you are finished with this sheet.
+
+
 
 ## Exercise 3: Pixar Films (4 Points)
 
