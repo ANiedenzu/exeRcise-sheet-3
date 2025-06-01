@@ -82,13 +82,36 @@ pixar_films_ratingfactor = pixar_films %>%
 ```
 
 
+### b)
+Inspect the film titles manually. Which films form a film series? A film series can be identified by a common word in the titles of the films, often in conjunction with a number in the title, e.g. "Despicable Me" and "Despicable Me 2". Create a dataframe which displays a list of the different series with the titles of the films and how many films belong to the series. Output the dataframe.
 
-b)  Inspect the film titles manually. Which films form a film series? A
-    film series can be identified by a common word in the titles of the
-    films, often in conjunction with a number in the title,
-    e.g. "Despicable Me" and "Despicable Me 2". Create a dataframe which
-    displays a list of the different series with the titles of the films
-    and how many films belong to the series. Output the dataframe.
+```{r}
+
+pixar_films_series = pixar_films_ratingfactor %>%
+  mutate(series = case_when(
+    str_detect(film, regex("Toy Story", ignore_case = TRUE)) ~ "Toy Story",
+    str_detect(film, regex("Cars", ignore_case = TRUE)) ~ "Cars",
+    str_detect(film, regex("Finding", ignore_case = TRUE)) ~ "Finding Fish",
+    str_detect(film, regex("Monsters", ignore_case = TRUE)) ~ "Monsters",
+    str_detect(film, regex("Incredibles", ignore_case = TRUE)) ~ "Incredibles",
+    TRUE ~ "Standalone")
+    )
+
+series_summary <- pixar_films_series %>%
+  group_by(series) %>%
+  summarise(
+    films = paste(film, collapse = ", "),
+    count = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(count)) %>% 
+  filter(!(series=="Standalone"))
+
+
+series_summary
+
+```
+
 
 c)  Load the `public_response` dataframe into R. Convert the
     `cinema_score` variable into a factor while ensuring the factor
