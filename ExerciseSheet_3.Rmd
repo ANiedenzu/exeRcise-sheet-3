@@ -44,21 +44,44 @@ Regularly push your latest changes to GitHub again and especially do so when you
 
 
 ## Exercise 3: Pixar Films (4 Points)
-
 Download the `pixar_films` and `public_response` datasets from the
 GitHub repository and track them in git.
-
 Link:
 <https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-03-11>
-
 For small datasets like these adding them to git is not a problem.
 
-a)  Load the `pixar_films` dataset into R. Clean the dataset by removing
-    films without a title. Inspect the variable `film_rating`. What are
-    the possible values and what do they mean? Create a factor variable
-    for the film rating. Why is this appropriate?
+### a)
+Load the `pixar_films` dataset into R. Clean the dataset by removing films without a title. Inspect the variable `film_rating`. What are the possible values and what do they mean? Create a factor variable for the film rating. Why is this appropriate?
 
-<!-- -->
+```{r}
+#load packages
+library(tidyverse)
+
+#load datasets
+pixar_films = read_csv("data/pixar_films.csv")
+public_response = read_csv("data/public_response.csv")
+
+View(pixar_films)
+```
+
+Values for the variable "film_rating" are "G", "PG", "N/A" and "Not Rated". "N/A" and "Not Rated" referring to not (yet) existing ratings. "G" is short for "General Audiences" meaning the movie is suitable for all ages. "PG" is short for "Parental Guidance suggested" meaning the movie contains content that might not be suitable for young children. For example a PG-13 rated movie contains content inappropiate for pre teenage children. Parents are advised to accompany or guide children throughout the movie.
+
+```{r}
+#remove all movies with all titles, change film_rating to be a factor variable instead of a character variable
+pixar_films_ratingfactor = pixar_films %>%
+  filter(!(is.na(film))) %>% 
+  mutate(film_rating = factor(
+    film_rating,
+    levels = c("G", "PG", "N/A"),
+    ordered = TRUE)
+    )
+
+#View(pixar_films_ratingfactor)
+#typeof(pixar_films_ratingfactor$film_rating)
+#typeof(pixar_films$film_rating)
+```
+
+
 
 b)  Inspect the film titles manually. Which films form a film series? A
     film series can be identified by a common word in the titles of the
