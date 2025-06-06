@@ -139,9 +139,8 @@ pixar_films_public_response = left_join(x = pixar_films_ratingfactor, y = public
 ```
 
 
-d)  Choose one of the variables representing the public response and
-    create a bar plot for the films belonging to a series. Here are the
-    details of the plot:
+### d)
+Choose one of the variables representing the public response and create a bar plot for the films belonging to a series. Here are the details of the plot:
 
     -   The film series are represented on the x-axis.
     -   Your chosen public response variable is displayed on the y-axis.
@@ -150,9 +149,50 @@ d)  Choose one of the variables representing the public response and
         Order the bars within a series according to the release date of
         the films.
     -   A title and axis labels for context.
+    
+    
+```{r}
+#group by series for combined dataframe
+#remove standalone movies and order by release date within a series
+pixar_combined_series = pixar_films_public_response %>%
+  mutate(series = case_when(
+    str_detect(film, regex("Toy Story", ignore_case = TRUE)) ~ "Toy Story",
+    str_detect(film, regex("Cars", ignore_case = TRUE)) ~ "Cars",
+    str_detect(film, regex("Finding", ignore_case = TRUE)) ~ "Finding Fish",
+    str_detect(film, regex("Monsters", ignore_case = TRUE)) ~ "Monsters",
+    str_detect(film, regex("Incredibles", ignore_case = TRUE)) ~ "Incredibles",
+    TRUE ~ NA_character_
+  )) %>%
+  filter(!is.na(series)) %>%
+  arrange(series, release_date) %>%
+  mutate(film = factor(film, levels = unique(film)))
+
+View(pixar_combined_series)
+
+#plot using audience_score
+ggplot(pixar_combined_series, aes(x = series, y = metacritic, fill = film)) +
+  geom_bar(
+    stat = "identity",
+    width = 0.8,
+    position = position_dodge(preserve = "single", width = 1)
+    ) +
+  labs(
+    title = "Metacritic Scores for Pixar Films",
+    subtitle = "grouped by series",
+    x = "Film Series",
+    y = "Metacritic Score",
+    fill = "Film"
+    ) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
     What do you notice when comparing the scores of the films in a
     series? Do you see any patterns?
+
+The first film always has the best audience score in each series with the second film always producing a noticeable drop. Toy Story seems to be generally the most likes series, which is why it's not surprising it has the most amount of films of all the series.
+
+
 
 ## Exercise 4: Open Analysis (4 points)
 
