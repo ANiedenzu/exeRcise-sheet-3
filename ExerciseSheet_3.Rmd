@@ -113,6 +113,8 @@ Load the `pixar_films` dataset into R. Clean the dataset by removing films witho
 ```{r}
 #load packages
 library(tidyverse)
+library(distill)
+library(easystats)
 
 #load dataset
 pixar_films = read_csv("data/pixar_films.csv")
@@ -227,9 +229,10 @@ pixar_combined_series = pixar_films_public_response %>%
   arrange(series, release_date) %>%
   mutate(film = factor(film, levels = unique(film)))
 
-View(pixar_combined_series)
+#View(pixar_combined_series)
+```
 
-#plot using audience_score
+```{r pixar-metacritic, fig.cap = "Metacritic scores of Pixar films grouped by franchise. Each bar represents the score of an individual film, grouped under its respective series (e.g., Toy Story, Cars)."}
 ggplot(pixar_combined_series, aes(x = series, y = metacritic, fill = film)) +
   geom_bar(
     stat = "identity",
@@ -273,6 +276,7 @@ Go to <https://github.com/owid/owid-datasets/tree/master/datasets> and choose a 
 
 ### b)
 Download the dataset and track it in git.
+
 ```{r}
 roaddeaths = read_csv("data/German road deaths and accidents - destatis.csv")
 ```
@@ -293,15 +297,15 @@ Come up with a (research) question you want to answer with the data and briefly 
 
 Is there a correlation between the introduction of safety standards such as seat belts and airbags and both the number of car accidents and the proportion of fatal accidents?
 
-For context, the history of the seat belt laws in germany:
-1974: Mandatory installation of seat belts in new cars (front seats).
-1976: Seat belt requirement in passenger cars for all occupants (no fines yet).
-1979: Mandatory installation of seat belts in new cars (rear seats).
-1984: Introduction of fines for driving without wearing a seat belt.
-1992: Seat belt requirement in trucks over 3.5 tons.
-1999: Seat belt requirement in long-distance coaches.
-2004: Three-point seat belts required in new vehicles for all seats.
-2014: Seat belt requirement in taxis and rental cars.
+For example context, the history of the seat belt laws in germany:
+- 1974: Mandatory installation of seat belts in new cars (front seats).
+- 1976: Seat belt requirement in passenger cars for all occupants (no fines yet).
+- 1979: Mandatory installation of seat belts in new cars (rear seats).
+- 1984: Introduction of fines for driving without wearing a seat belt.
+- 1992: Seat belt requirement in trucks over 3.5 tons.
+- 1999: Seat belt requirement in long-distance coaches.
+- 2004: Three-point seat belts required in new vehicles for all seats.
+- 2014: Seat belt requirement in taxis and rental cars.
 
 (source DPMA <https://www.dpma.de/dpma/veroeffentlichungen/meilensteine/erfindungenmitgeschichten/dreipunktegurt/index.html>)
 
@@ -311,8 +315,103 @@ For context, the history of the seat belt laws in germany:
 Use R to answer your chosen question. Please limit your analysis to the functions and techniques we have covered so far in the course. You are **not expected** to use advanced statistical models or external packages which haven't been introduced.
 
 
+```{r}
+#View(roaddeaths)
+
+#adding injury- and lethalratios
+roaddeaths_lethalratio = roaddeaths %>% 
+  mutate(
+    injuryratio = `Accidents reported with injury` / `Accidents reported to police`,
+    lethalratio_total = `Road deaths` / `Accidents reported to police`,
+    lethalratio_injured = `Road deaths` / `Accidents reported with injury`,
+    materialratio = `Accidents reported with material damage` / `Accidents reported to police`
+         )
+#View(roaddeaths_lethalratio)
+
+#fitting linear models
+lm_injured = lm(injuryratio ~ Year, data = roaddeaths_lethalratio)
+lm_lethaltotal = lm(lethalratio_total ~ Year, data = roaddeaths_lethalratio)
+lm_lethalinjured = lm(lethalratio_injured ~ Year, data = roaddeaths_lethalratio)
+lm_material = lm(materialratio ~ Year, data = roaddeaths_lethalratio)
+
+#model parameters and short report
+parameters(lm_injured)
+report(lm_injured) %>%
+  summary()
+
+parameters(lm_lethaltotal)
+report(lm_lethaltotal) %>%
+  summary()
+
+parameters(lm_lethalinjured)
+report(lm_lethalinjured) %>%
+  summary()
+
+parameters(lm_material)
+report(lm_material) %>%
+  summary()
+
+```
+
+All four above linear models show a statistically significant trend. Over the years out of all reported accidents a less people got injured, less people died and more material damage happend. This might also have to do with people generally reporting more minor accidents with only material damage, which in the past were possibly not reported at all. Even with that assumption, there is a very high significance present. One linear model that is not affected by this assumption is the percentage of lethal accidents out of accidets with injury. Even for this model the effect of the year is statistically substancially significant (R2 = 0.91, adj. R2 = 0.90) and negative (beta = -6.78e-04, 95% CI [-7.41e-04,
+-6.16e-04], t(62) = -21.70, p < .001, Std. beta = -0.94).
+
+
+
 ### f)
 Create a meaningful plot / figure with the dataset. Make sure to provide a figure caption (via the chunk options / Rmarkdown) and correctly label the figure.
+
+
+```{r lethalratio-of-injured, fig.width=8, fig.height=5, fig.cap = "Lethal ratio (deaths per injury accident) in Germany over time. The trend shows a significant decrease, suggesting improved traffic safety and emergency response."}
+
+#key legislation years
+law_years = c(1974, 1976, 1979, 1984, 1990, 1992, 1999, 2004, 2014)
+law_labels = c(
+  "1974: front belts for new cars",
+  "1976: belt required while driving",
+  "1979: rear belts for new cars",
+  "1984: fines for no belt",
+  "1990: german reunification",
+  "1992: belts required in trucks",
+  "1999: belts required in coaches",
+  "2004: all seats need 3-point belts",
+  "2014: belts in taxis and rental cars"
+)
+
+label_bottom_y = 0.017
+label_mid_y = 0.058
+label_top_y = 0.05
+label_y_positions = c(rep(label_bottom_y, 2), rep(label_mid_y, 1), rep(label_top_y, length(law_years) - 3))
+
+ggplot(roaddeaths_lethalratio, aes(x = Year, y = lethalratio_injured)) +
+  geom_point(color = "#0072B2", size = 2) +
+  geom_smooth(method = "lm", se = TRUE, color = "#D55E00") +
+  labs(
+    title = "Lethal Ratio (Deaths per Injury Accident) Over Time",
+    x = "Year",
+    y = "Lethal Ratio (Road Deaths / Injury Accidents)"
+  ) +
+  geom_vline(xintercept = law_years, linetype = "dashed", color = "gray40", size = 0.5) +
+  annotate(
+    "text",
+    x = law_years,
+    y = label_y_positions,
+    label = law_labels,
+    angle = 90,
+    vjust = -0.5,
+    size = 3
+    ) +
+  scale_x_continuous(
+    breaks = seq(1950, 2020, by = 10),
+    limits = c(1950, 2020)
+    ) +
+  scale_y_continuous(
+    limits = c(0, 0.073),
+    labels = function(x) paste0(sprintf("%.1f", x * 100), "%"),
+    )+
+  theme_minimal(base_size = 13)
+```
+
 
 
 
