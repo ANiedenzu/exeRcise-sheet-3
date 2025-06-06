@@ -242,14 +242,12 @@ Download the dataset and track it in git.
 roaddeaths = read_csv("data/German road deaths and accidents - destatis.csv")
 ```
 
-- commit to git done here
-
 
 ### c)
 Put the name / title of the dataset and a link to it below.
 
--   Dataset Name: ...
--   Link: <https://github.com/owid/owid-datasets/>...
+-   Dataset Name: German road deaths and accidents - destatis
+-   Link: <https://github.com/owid/owid-datasets/blob/master/datasets/German%20road%20deaths%20and%20accidents%20-%20destatis/German%20road%20deaths%20and%20accidents%20-%20destatis.csv>
 
 
 ### d)
